@@ -17,6 +17,7 @@ st.markdown("""
     .stButton>button:hover { transform: scale(1.05); box-shadow: 0 0 25px #FF007F; }
     .success-text { color: #00FFCC; font-weight: bold; font-size: 20px; }
     .fail-text { color: #FF007F; font-weight: bold; font-size: 20px; }
+    .timer-text { color: #FFCC00; font-weight: bold; font-size: 24px; font-family: 'Courier New', monospace; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -94,7 +95,7 @@ elif st.session_state.step == 'proceed_check':
             st.session_state.step = 'intro'
             st.rerun()
 
-# --- STAGE 3: THE QUIZ INTERFACE ---
+# --- STAGE 3: THE QUIZ INTERFACE WITH TICKING TIMER ---
 elif st.session_state.step == 'quiz':
     q_idx = st.session_state.current_q
     
@@ -103,8 +104,10 @@ elif st.session_state.step == 'quiz':
         
         st.title(f"🧠 QUESTION {q_idx} / {len(questions)}")
         st.progress(q_idx / len(questions))
-        st.markdown(f"### ⏱️ TIME MATRIX CONSTANCE: `{q_data['t']} SECONDS`")
         st.info(q_data['p'])
+        
+        # This empty placeholder handles the ticking countdown animation!
+        timer_place = st.empty()
         
         with st.form(key=f"q_form_{q_idx}"):
             user_ans = st.text_input("Enter Answer Matrix:", key=f"input_{q_idx}").lower().strip()
@@ -120,6 +123,25 @@ elif st.session_state.step == 'quiz':
                 
                 st.session_state.current_q += 1
                 st.rerun()
+        
+        # Active background countdown loop if they haven't typed an answer yet
+        start_time = time.time()
+        time_limit = q_data['t']
+        
+        while True:
+            elapsed = time.time() - start_time
+            remaining = int(time_limit - elapsed)
+            
+            if remaining <= 0:
+                st.toast("🚨 TOO SLOW! Time's up.", icon="⏳")
+                time.sleep(1)
+                st.session_state.current_q += 1
+                st.rerun()
+                break
+                
+            timer_place.markdown(f"<p class='timer-text'>⏱️ TIME REMAINING: {remaining} SECONDS</p>", unsafe_allow_html=True)
+            time.sleep(0.5) # Fast interval tracking
+            
     else:
         st.session_state.step = 'results'
         st.rerun()
