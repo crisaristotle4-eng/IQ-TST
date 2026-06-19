@@ -21,7 +21,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- SESSION STATE INITIALIZATION ---
-# Streamlit reruns the script on every input, so we use session_state to hold onto data.
 if 'step' not in st.session_state:
     st.session_state.step = 'intro'
 if 'IQ_score' not in st.session_state:
@@ -29,10 +28,9 @@ if 'IQ_score' not in st.session_state:
 if 'current_q' not in st.session_state:
     st.session_state.current_q = 1
 
-total_questions = 23
+total_questions = 22
 
 # --- THE RIDDLE DATABASE ---
-# Kept identical to your original code logic
 questions = {
     1: {"p": "What has a head and a tail but no body?", "a": ["coin"], "t": 15},
     2: {"p": "Aint having a mouth but I speak, not legs but I run, not hands but i can carry stuff. What am I?", "a": ["river"], "t": 20},
@@ -40,7 +38,7 @@ questions = {
     4: {"p": "What has hands but cannot clap?", "a": ["clock"], "t": 20},
     5: {"p": "What goes up but never comes down?", "a": ["age"], "t": 20},
     6: {"p": "The more of them you take the more you leave?", "a": ["footsteps"], "t": 20},
-    7: {"p": "David’s parents have three sons: Snap, Crackle, and who is the third?", "a": ["david"], "t": 20}, # Fixed skipped q7 label gracefully
+    7: {"p": "David’s parents have three sons: Snap, Crackle, and who is the third?", "a": ["david"], "t": 20},
     8: {"p": "I have cities, but no houses. I have mountains, but no trees. I have water, but no fish. What am I?", "a": ["map"], "t": 20},
     9: {"p": "What is seen in the middle of March and April that can’t be seen at the beginning or end of either month?", "a": ["r"], "t": 20},
     10: {"p": "What word in the dictionary is spelled incorrectly?", "a": ["incorrectly"], "t": 20},
@@ -53,12 +51,12 @@ questions = {
     17: {"p": "What has a thumb and four fingers, but is not a hand?", "a": ["glove"], "t": 20},
     18: {"p": "I have keys but no doors. I have space but no room. You can enter but can’t leave. What am I?", "a": ["keyboard"], "t": 20},
     19: {"p": "What building has the most stories?", "a": ["library"], "t": 20},
-    20: {"p": "What can you cheat or hold in your left hand but never in your right hand?", "a": ["right elbow"], "t": 20}, # Match your q21 logic
+    20: {"p": "What can you cheat or hold in your left hand but never in your right hand?", "a": ["right elbow"], "t": 20},
     21: {"p": "You see a boat filled with people. It has not sunk, but when you look again you don’t see a single person on the boat. Why?", "a": ["they were all married"], "t": 20},
     22: {"p": "I am tall when I am young, and I am short when I am old. What am I?", "a": ["candle"], "t": 20}
 }
 
-# --- STAGE 1: INTRO & AUTHENTICATION ---
+# --- STAGE 1: INTRO ---
 if st.session_state.step == 'intro':
     st.title("⚡ CRIS' MAINFRAME SYSTEM ⚡")
     st.subheader("Hi Bruh! Welcome to one of Cris' Programs.")
@@ -89,41 +87,34 @@ elif st.session_state.step == 'proceed_check':
         if st.button("YAP / YES / GO AHEAD"):
             st.session_state.step = 'quiz'
             with st.spinner("Loading Mainframe Execution Layers..."):
-                time.sleep(1.5)
+                time.sleep(1.0)
             st.rerun()
     with col2:
         if st.button("ABORT MISSION"):
-            st.write("Program ended! System cold-boot locked.")
             st.session_state.step = 'intro'
+            st.rerun()
 
-# --- STAGE 3: THE ARCADE QUIZ INTERFACE ---
+# --- STAGE 3: THE QUIZ INTERFACE ---
 elif st.session_state.step == 'quiz':
     q_idx = st.session_state.current_q
     
     if q_idx <= len(questions):
         q_data = questions[q_idx]
         
-        # UI Hype Dashboard Elements
         st.title(f"🧠 QUESTION {q_idx} / {len(questions)}")
-        
-        # Progress bar to boost user adrenaline
-        progress_val = q_idx / len(questions)
-        st.progress(progress_val)
-        
+        st.progress(q_idx / len(questions))
         st.markdown(f"### ⏱️ TIME MATRIX CONSTANCE: `{q_data['t']} SECONDS`")
         st.info(q_data['p'])
         
-        # Form to handle clean submission without crashing Streamlit flow
         with st.form(key=f"q_form_{q_idx}"):
             user_ans = st.text_input("Enter Answer Matrix:", key=f"input_{q_idx}").lower().strip()
-            submit = st.form_submit_with_clicks(label="TRANSMIT DATA")
+            submit = st.form_submit_button(label="TRANSMIT DATA")
             
             if submit:
                 if user_ans in q_data['a']:
                     st.session_state.IQ_score += 1
                     st.toast("⚡ CALIBRATION SUCCESSFUL!", icon="✅")
                 else:
-                    # Keep your original hilarious failure responses!
                     fails = ["Men you're dead!", "Bruh!!!", "Its over men its over", "Bruh, you missed it!"]
                     st.toast(fails[q_idx % len(fails)], icon="❌")
                 
@@ -133,19 +124,14 @@ elif st.session_state.step == 'quiz':
         st.session_state.step = 'results'
         st.rerun()
 
-# --- STAGE 4: HIGH AURA RESULTS LAYOUT ---
+# --- STAGE 4: RESULTS ---
 elif st.session_state.step == 'results':
     st.title("📊 SYSTEM ANALYSIS MATRIX")
-    st.write(f"Yep, that's the end of it, **{st.session_state.name.upper()}**.")
+    st.write(f"Yep, that's the end of it, {st.session_state.name.upper()}.")
     
-    # Fake terminal counting loop effect
-    with st.spinner("CALCULATING USER'S IQ LEVEL..."):
-        time.sleep(2)
-        
     percentage = (st.session_state.IQ_score / total_questions) * 100
     st.metric(label="FINAL CALCULATED COGNITIVE PERCENTAGE", value=f"{percentage:.2f}%")
     
-    # Dynamic styling outputs based on original criteria
     if percentage >= 90:
         st.balloons()
         st.markdown(f"<p class='success-text'>Congrats! You are pretty smart {st.session_state.name.title()}. Scoring over 90% in CRIS' test is impressive I guess!</p>", unsafe_allow_html=True)
